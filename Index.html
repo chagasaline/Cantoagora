@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VocalCoach Pro - Seu Professor de Canto Inteligente</title>
+    <title>VocalCoach Pro - Aprenda a Cantar Profissionalmente</title>
     <style>
         :root {
             --primary: #6C5CE7;
@@ -11,6 +11,7 @@
             --accent: #FD79A8;
             --success: #00B894;
             --warning: #FDCB6E;
+            --danger: #e17055;
             --background: #2D3436;
             --surface: #353B48;
             --text: #FFFFFF;
@@ -35,7 +36,7 @@
         }
 
         .app-container {
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
             background: var(--background);
             border-radius: 20px;
@@ -49,6 +50,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo {
@@ -91,6 +94,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .voice-detection {
@@ -103,9 +107,76 @@
             overflow: hidden;
         }
 
+        .voice-test-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .voice-test-modal.show {
+            display: flex;
+        }
+
+        .voice-test-content {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .voice-test-progress {
+            width: 100%;
+            height: 10px;
+            background: var(--background);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .voice-test-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 5px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .test-note-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FDCB6E;
+            margin: 20px 0;
+        }
+
+        .test-frequency-display {
+            font-size: 24px;
+            color: var(--secondary);
+        }
+
         .pitch-indicator {
             width: 100%;
-            height: 200px;
+            height: 300px;
             background: var(--surface);
             border-radius: 10px;
             margin: 20px 0;
@@ -120,34 +191,73 @@
             height: 4px;
             background: var(--accent);
             left: 0;
-            transition: top 0.05s;
-            box-shadow: 0 0 10px var(--accent);
+            transition: top 0.08s ease;
+            box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+            z-index: 2;
         }
 
         .target-note {
             position: absolute;
             width: 100%;
-            height: 4px;
+            height: 6px;
             background: var(--success);
             left: 0;
-            box-shadow: 0 0 10px var(--success);
+            box-shadow: 0 0 20px var(--success), 0 0 40px var(--success);
+            z-index: 3;
+            animation: targetPulse 1.5s infinite;
+        }
+
+        @keyframes targetPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .note-labels {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            z-index: 1;
         }
 
         .frequency-display {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: bold;
             color: #FDCB6E;
             margin: 10px 0;
+            text-shadow: 0 0 20px rgba(253, 203, 110, 0.5);
         }
 
         .note-display {
-            font-size: 24px;
+            font-size: 28px;
             color: var(--secondary);
+            margin: 5px 0;
         }
 
         .song-list {
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: var(--background);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--success);
         }
 
         .song-item {
@@ -158,6 +268,7 @@
             cursor: pointer;
             transition: all 0.3s;
             border: 2px solid transparent;
+            position: relative;
         }
 
         .song-item:hover {
@@ -170,20 +281,64 @@
             background: rgba(108, 92, 231, 0.2);
         }
 
+        .song-item.recommended {
+            border-left: 4px solid var(--success);
+            background: rgba(0, 184, 148, 0.1);
+        }
+
+        .song-item.recommended::after {
+            content: "✓ Recomendada";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--success);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
         .song-artist {
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 5px;
         }
 
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+
+        .difficulty-easy {
+            background: rgba(0, 184, 148, 0.3);
+            color: #55efc4;
+        }
+
+        .difficulty-medium {
+            background: rgba(253, 203, 110, 0.3);
+            color: #ffeaa7;
+        }
+
+        .difficulty-hard {
+            background: rgba(225, 112, 85, 0.3);
+            color: #fab1a0;
+        }
+
         .lyrics-display {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             background: var(--background);
             border-radius: 10px;
             padding: 20px;
             font-size: 18px;
             line-height: 1.8;
+            scroll-behavior: smooth;
         }
 
         .current-lyric {
@@ -191,10 +346,16 @@
             font-weight: bold;
             font-size: 24px;
             animation: pulse 1s infinite;
+            background: rgba(108, 92, 231, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+            border-left: 4px solid var(--primary);
         }
 
         .lyric-completed {
             opacity: 0.5;
+            text-decoration: line-through;
         }
 
         .lyric-upcoming {
@@ -215,21 +376,26 @@
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            background: var(--primary);
-            color: white;
-            min-width: 150px;
+            min-width: 180px;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .btn:disabled {
@@ -237,20 +403,31 @@
             cursor: not-allowed;
         }
 
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
         .btn-success {
             background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
         }
 
         .btn-warning {
-            background: #e17055;
-            color: white;
+            background: var(--warning);
+            color: var(--background);
         }
 
         .feedback-box {
             padding: 15px;
             border-radius: 10px;
             margin: 15px 0;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             display: none;
             animation: slideIn 0.3s;
@@ -278,6 +455,12 @@
             color: #ffeaa7;
         }
 
+        .feedback-error {
+            background: rgba(225, 112, 85, 0.2);
+            border: 2px solid var(--danger);
+            color: #fab1a0;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateY(-20px);
@@ -291,9 +474,9 @@
 
         .progress-bar {
             width: 100%;
-            height: 10px;
+            height: 12px;
             background: var(--background);
-            border-radius: 5px;
+            border-radius: 6px;
             margin: 10px 0;
             overflow: hidden;
         }
@@ -301,8 +484,9 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 5px;
+            border-radius: 6px;
             transition: width 0.3s;
+            width: 0%;
         }
 
         .stats {
@@ -326,7 +510,7 @@
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: bold;
             color: #FDCB6E;
             margin-bottom: 5px;
@@ -339,11 +523,53 @@
 
         .voice-type-badge {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: rgba(108, 92, 231, 0.3);
             border: 2px solid var(--primary);
+            border-radius: 25px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .voice-range-info {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(0, 184, 148, 0.2);
+            border: 2px solid var(--success);
             border-radius: 20px;
             margin-top: 10px;
+            font-weight: bold;
+            color: #55efc4;
+        }
+
+        .tip-box {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .genre-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: rgba(162, 155, 254, 0.3);
+            color: var(--secondary);
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+
+        .range-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(108, 92, 231, 0.2);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            margin: 5px;
             font-weight: bold;
         }
 
@@ -359,6 +585,16 @@
             .stats {
                 grid-template-columns: 1fr;
             }
+            
+            .pitch-indicator {
+                height: 200px;
+            }
+            
+            .btn {
+                min-width: 140px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -370,7 +606,7 @@
                 <h1>VocalCoach <span>Pro</span></h1>
             </div>
             <div>
-                <span id="connectionStatus">🔴 Microfone Desconectado</span>
+                <span id="connectionStatus" style="font-weight: bold;">🔴 Microfone Desconectado</span>
             </div>
         </div>
 
@@ -379,27 +615,55 @@
             <div class="voice-detection">
                 <div class="section-title">
                     <span>🎵</span> Detector de Tom em Tempo Real
+                    <button class="btn btn-warning" onclick="startVoiceTest()" style="min-width: auto; padding: 8px 15px; font-size: 14px;">
+                        🎤 Testar Minha Voz
+                    </button>
+                </div>
+                <div id="voiceTypeDisplay" style="margin: 10px 0;">
+                    <span class="voice-type-badge">🎤 Faça o teste de voz para descobrir seu tipo vocal</span>
                 </div>
                 <div class="pitch-indicator" id="pitchIndicator">
-                    <div class="target-note" id="targetNote" style="top: 50%;"></div>
-                    <div class="pitch-line" id="pitchLine" style="top: 50%;"></div>
+                    <div class="note-labels">
+                        <span>C5 (523 Hz)</span>
+                        <span>A4 (440 Hz)</span>
+                        <span>F4 (349 Hz)</span>
+                        <span>D4 (294 Hz)</span>
+                        <span>B3 (247 Hz)</span>
+                        <span>G3 (196 Hz)</span>
+                        <span>E3 (165 Hz)</span>
+                    </div>
+                    <div class="target-note" id="targetNote" style="top: 50%; display: none;"></div>
+                    <div class="pitch-line" id="pitchLine" style="top: 50%; display: none;"></div>
                 </div>
-                <div class="frequency-display" id="frequencyDisplay">0 Hz</div>
+                <div class="frequency-display" id="frequencyDisplay">-- Hz</div>
                 <div class="note-display" id="noteDisplay">--</div>
-                <div id="voiceTypeDisplay" style="margin-top: 10px;"></div>
                 <div id="feedbackBox" class="feedback-box"></div>
                 <div class="controls">
-                    <button class="btn" id="micButton" onclick="toggleMicrophone()">🎤 Ativar Microfone</button>
-                    <button class="btn btn-success" id="startButton" onclick="startPractice()" disabled>▶️ Iniciar Treino</button>
-                    <button class="btn btn-warning" onclick="stopPractice()">⏹️ Parar</button>
+                    <button class="btn btn-primary" id="micButton" onclick="toggleMicrophone()">
+                        🎤 Ativar Microfone
+                    </button>
+                    <button class="btn btn-success" id="startButton" onclick="startPractice()" disabled>
+                        ▶️ Iniciar Treino
+                    </button>
+                    <button class="btn btn-danger" onclick="stopPractice()">
+                        ⏹️ Parar
+                    </button>
+                </div>
+                <div class="tip-box">
+                    💡 <strong>Dica:</strong> Faça o teste de voz primeiro! O app identificará seu tipo vocal e recomendará músicas perfeitas para você!
+                    <br>⌨️ Atalhos: M (microfone) | Espaço (iniciar/parar) | ESC (parar)
                 </div>
             </div>
 
             <!-- Lista de Músicas -->
             <div class="section">
                 <div class="section-title">
-                    <span>🎼</span> Músicas para Treinar
+                    <span>🎼</span> Biblioteca de Músicas
+                    <button class="btn btn-primary" onclick="showRecommendedSongs()" style="min-width: auto; padding: 8px 15px; font-size: 14px;">
+                        ⭐ Recomendadas para Mim
+                    </button>
                 </div>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar música ou artista..." oninput="filterSongs()">
                 <div class="song-list" id="songList">
                     <!-- Músicas serão adicionadas aqui -->
                 </div>
@@ -411,12 +675,12 @@
                     <span>📝</span> Letra da Música
                 </div>
                 <div class="lyrics-display" id="lyricsDisplay">
-                    <p>Selecione uma música para começar</p>
+                    <p>🎵 Selecione uma música para começar</p>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div id="songProgress">0% completo</div>
+                <div id="songProgress" style="text-align: center; font-weight: bold;">0% completo</div>
             </div>
 
             <!-- Estatísticas -->
@@ -442,11 +706,34 @@
         </div>
     </div>
 
+    <!-- Modal de Teste de Voz -->
+    <div class="voice-test-modal" id="voiceTestModal">
+        <div class="voice-test-content">
+            <h2>🎤 Teste de Tipo Vocal</h2>
+            <p style="margin: 15px 0; color: var(--text-secondary);">
+                Vamos descobrir seu tipo de voz! Cante as notas indicadas do grave ao agudo.
+            </p>
+            <div class="test-note-display" id="testNoteDisplay">--</div>
+            <div class="test-frequency-display" id="testFrequencyDisplay">Cante a nota indicada</div>
+            <div class="voice-test-progress">
+                <div class="voice-test-progress-fill" id="testProgressFill"></div>
+            </div>
+            <p id="testInstruction" style="color: var(--secondary); margin: 10px 0;">
+                Preparado? Vamos começar!
+            </p>
+            <div class="controls">
+                <button class="btn btn-success" onclick="startVoiceTest()">🎤 Iniciar Teste</button>
+                <button class="btn btn-danger" onclick="closeVoiceTest()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuração do aplicativo
         const app = {
             isMicActive: false,
             isPracticing: false,
+            isTesting: false,
             audioContext: null,
             analyser: null,
             microphone: null,
@@ -458,22 +745,40 @@
             sessionStart: null,
             timerInterval: null,
             voiceType: null,
+            voiceRange: null,
+            lowestNote: null,
+            highestNote: null,
+            recommendedSongs: [],
             targetFrequency: 0,
             currentFrequency: 0,
-            tolerance: 50, // tolerância em cents (50 = meio semitom)
+            tolerance: 50,
             animationFrame: null,
             noteHoldStart: null,
-            noteHoldDuration: 0,
-            requiredHoldDuration: 500, // 500ms para considerar nota atingida
+            requiredHoldDuration: 800,
+            feedbackTimeout: null,
+            lastFeedbackTime: 0,
+            isProcessing: false,
+            testNotes: [],
+            testNoteIndex: 0,
+            testCompleted: false
         };
 
-        // Banco de dados de músicas
+        // Banco de dados de músicas expandido
         const songs = [
+            // ============ BEYONCÉ ============
             {
                 title: "Halo",
                 artist: "Beyoncé",
-                difficulty: "Iniciante",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
                 vocalRange: "G3 - E5",
+                rangeLow: "G3",
+                rangeHigh: "E5",
+                rangeLowFreq: 196.00,
+                rangeHighFreq: 659.25,
+                genre: "Pop/R&B",
+                year: 2008,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor", "Barítono"],
                 lyrics: [
                     { text: "Remember those walls I built", note: "C4", frequency: 261.63 },
                     { text: "Well, baby, they're tumbling down", note: "D4", frequency: 293.66 },
@@ -486,10 +791,68 @@
                 ]
             },
             {
+                title: "Single Ladies",
+                artist: "Beyoncé",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "E3 - E5",
+                rangeLow: "E3",
+                rangeHigh: "E5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 659.25,
+                genre: "R&B/Pop",
+                year: 2008,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "All the single ladies", note: "E4", frequency: 329.63 },
+                    { text: "All the single ladies", note: "F#4", frequency: 369.99 },
+                    { text: "All the single ladies", note: "G#4", frequency: 415.30 },
+                    { text: "All the single ladies", note: "A4", frequency: 440.00 },
+                    { text: "Now put your hands up", note: "B4", frequency: 493.88 },
+                    { text: "Up in the club", note: "C5", frequency: 523.25 },
+                    { text: "We just broke up", note: "D5", frequency: 587.33 },
+                    { text: "I'm doing my own little thing", note: "E5", frequency: 659.25 },
+                ]
+            },
+            {
+                title: "Crazy In Love",
+                artist: "Beyoncé",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "D3 - F5",
+                rangeLow: "D3",
+                rangeHigh: "F5",
+                rangeLowFreq: 146.83,
+                rangeHighFreq: 698.46,
+                genre: "R&B/Pop",
+                year: 2003,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "I look and stare so deep in your eyes", note: "D4", frequency: 293.66 },
+                    { text: "I touch on you more and more every time", note: "E4", frequency: 329.63 },
+                    { text: "When you leave I'm begging you not to go", note: "F#4", frequency: 369.99 },
+                    { text: "Call your name two or three times in a row", note: "G4", frequency: 392.00 },
+                    { text: "Such a funny thing for me to try to explain", note: "A4", frequency: 440.00 },
+                    { text: "How I'm feeling and my pride is the one to blame", note: "B4", frequency: 493.88 },
+                    { text: "'Cause I know I don't understand", note: "C5", frequency: 523.25 },
+                    { text: "Just how your love can do what no one else can", note: "D5", frequency: 587.33 },
+                ]
+            },
+            
+            // ============ DUA LIPA ============
+            {
                 title: "Levitating",
                 artist: "Dua Lipa",
-                difficulty: "Intermediário",
+                difficulty: "Médio",
+                difficultyClass: "medium",
                 vocalRange: "F3 - D5",
+                rangeLow: "F3",
+                rangeHigh: "D5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 587.33,
+                genre: "Pop/Disco",
+                year: 2020,
+                recommendedFor: ["Mezzo-Soprano", "Contralto", "Barítono", "Tenor"],
                 lyrics: [
                     { text: "If you wanna run away with me", note: "G3", frequency: 196.00 },
                     { text: "I know a galaxy and I can take you", note: "A3", frequency: 220.00 },
@@ -502,10 +865,68 @@
                 ]
             },
             {
+                title: "Don't Start Now",
+                artist: "Dua Lipa",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "G3 - E5",
+                rangeLow: "G3",
+                rangeHigh: "E5",
+                rangeLowFreq: 196.00,
+                rangeHighFreq: 659.25,
+                genre: "Pop/Disco",
+                year: 2019,
+                recommendedFor: ["Mezzo-Soprano", "Contralto", "Barítono", "Tenor"],
+                lyrics: [
+                    { text: "If you don't wanna see me", note: "G3", frequency: 196.00 },
+                    { text: "Did a full 180, crazy", note: "C4", frequency: 261.63 },
+                    { text: "Thinking 'bout the way I was", note: "D4", frequency: 293.66 },
+                    { text: "Did the heartbreak change me? Maybe", note: "E4", frequency: 329.63 },
+                    { text: "But look at where I ended up", note: "F4", frequency: 349.23 },
+                    { text: "I'm all good already", note: "G4", frequency: 392.00 },
+                    { text: "So moved on, it's scary", note: "A4", frequency: 440.00 },
+                    { text: "I'm not where you left me at all", note: "C5", frequency: 523.25 },
+                ]
+            },
+            {
+                title: "New Rules",
+                artist: "Dua Lipa",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "F3 - D5",
+                rangeLow: "F3",
+                rangeHigh: "D5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 587.33,
+                genre: "Pop",
+                year: 2017,
+                recommendedFor: ["Mezzo-Soprano", "Contralto", "Barítono", "Tenor"],
+                lyrics: [
+                    { text: "One, don't pick up the phone", note: "F3", frequency: 174.61 },
+                    { text: "You know he's only calling", note: "G3", frequency: 196.00 },
+                    { text: "'Cause he's drunk and alone", note: "A3", frequency: 220.00 },
+                    { text: "Two, don't let him in", note: "C4", frequency: 261.63 },
+                    { text: "You'll have to kick him out again", note: "D4", frequency: 293.66 },
+                    { text: "Three, don't be his friend", note: "E4", frequency: 329.63 },
+                    { text: "You know you're gonna wake up", note: "F4", frequency: 349.23 },
+                    { text: "In his bed in the morning", note: "G4", frequency: 392.00 },
+                ]
+            },
+            
+            // ============ ADELE ============
+            {
                 title: "Easy On Me",
                 artist: "Adele",
-                difficulty: "Iniciante",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
                 vocalRange: "E3 - C5",
+                rangeLow: "E3",
+                rangeHigh: "C5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 523.25,
+                genre: "Pop/Soul",
+                year: 2021,
+                recommendedFor: ["Contralto", "Mezzo-Soprano", "Barítono", "Baixo"],
                 lyrics: [
                     { text: "There ain't no gold in this river", note: "E3", frequency: 164.81 },
                     { text: "That I've been washin' my hands in forever", note: "F3", frequency: 174.61 },
@@ -516,10 +937,68 @@
                 ]
             },
             {
+                title: "Hello",
+                artist: "Adele",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "F3 - E5",
+                rangeLow: "F3",
+                rangeHigh: "E5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 659.25,
+                genre: "Pop/Soul",
+                year: 2015,
+                recommendedFor: ["Contralto", "Mezzo-Soprano", "Barítono"],
+                lyrics: [
+                    { text: "Hello, it's me", note: "F3", frequency: 174.61 },
+                    { text: "I was wondering if after all these years", note: "G3", frequency: 196.00 },
+                    { text: "You'd like to meet", note: "A3", frequency: 220.00 },
+                    { text: "To go over everything", note: "B3", frequency: 246.94 },
+                    { text: "They say that time's supposed to heal ya", note: "C4", frequency: 261.63 },
+                    { text: "But I ain't done much healing", note: "D4", frequency: 293.66 },
+                    { text: "Hello, can you hear me?", note: "E4", frequency: 329.63 },
+                    { text: "I'm in California dreaming", note: "F4", frequency: 349.23 },
+                ]
+            },
+            {
+                title: "Rolling in the Deep",
+                artist: "Adele",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "E3 - F5",
+                rangeLow: "E3",
+                rangeHigh: "F5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 698.46,
+                genre: "Pop/Soul",
+                year: 2010,
+                recommendedFor: ["Contralto", "Mezzo-Soprano", "Barítono"],
+                lyrics: [
+                    { text: "There's a fire starting in my heart", note: "E4", frequency: 329.63 },
+                    { text: "Reaching a fever pitch", note: "F4", frequency: 349.23 },
+                    { text: "And it's bringing me out the dark", note: "G4", frequency: 392.00 },
+                    { text: "Finally, I can see you crystal clear", note: "A4", frequency: 440.00 },
+                    { text: "Go ahead and sell me out", note: "B4", frequency: 493.88 },
+                    { text: "And I'll lay your ship bare", note: "C5", frequency: 523.25 },
+                    { text: "See how I'll leave with every piece of you", note: "D5", frequency: 587.33 },
+                    { text: "Don't underestimate the things that I will do", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ LADY GAGA ============
+            {
                 title: "Shallow",
                 artist: "Lady Gaga & Bradley Cooper",
-                difficulty: "Intermediário",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
                 vocalRange: "G3 - E5",
+                rangeLow: "G3",
+                rangeHigh: "E5",
+                rangeLowFreq: 196.00,
+                rangeHighFreq: 659.25,
+                genre: "Pop/Ballad",
+                year: 2018,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
                 lyrics: [
                     { text: "Tell me something, girl", note: "G3", frequency: 196.00 },
                     { text: "Are you happy in this modern world?", note: "C4", frequency: 261.63 },
@@ -530,7 +1009,397 @@
                     { text: "I find myself longing for change", note: "A4", frequency: 440.00 },
                     { text: "And in the bad times, I fear myself", note: "C5", frequency: 523.25 },
                 ]
+            },
+            {
+                title: "Bad Romance",
+                artist: "Lady Gaga",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "E3 - E5",
+                rangeLow: "E3",
+                rangeHigh: "E5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 659.25,
+                genre: "Pop/Electronic",
+                year: 2009,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "Oh-oh-oh-oh-oh", note: "E4", frequency: 329.63 },
+                    { text: "Oh-oh-oh-oh-oh", note: "F#4", frequency: 369.99 },
+                    { text: "Caught in a bad romance", note: "G4", frequency: 392.00 },
+                    { text: "Rah-rah-ah-ah-ah", note: "A4", frequency: 440.00 },
+                    { text: "Roma-roma-ma", note: "B4", frequency: 493.88 },
+                    { text: "Gaga, ooh-la-la", note: "C5", frequency: 523.25 },
+                    { text: "Want your bad romance", note: "D5", frequency: 587.33 },
+                    { text: "Caught in a bad romance", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ ARIANA GRANDE ============
+            {
+                title: "7 Rings",
+                artist: "Ariana Grande",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "F3 - E5",
+                rangeLow: "F3",
+                rangeHigh: "E5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 659.25,
+                genre: "Pop/R&B",
+                year: 2019,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "Yeah, breakfast at Tiffany's", note: "F4", frequency: 349.23 },
+                    { text: "And bottles of bubbles", note: "G4", frequency: 392.00 },
+                    { text: "Girls with tattoos who like getting in trouble", note: "A4", frequency: 440.00 },
+                    { text: "Lashes and diamonds, ATM machines", note: "B4", frequency: 493.88 },
+                    { text: "Buy myself all of my favorite things", note: "C5", frequency: 523.25 },
+                    { text: "Been through some bad shit", note: "D5", frequency: 587.33 },
+                    { text: "I should be a sad bitch", note: "E5", frequency: 659.25 },
+                    { text: "Who woulda thought it'd turn me to a savage?", note: "D5", frequency: 587.33 },
+                ]
+            },
+            {
+                title: "Thank U, Next",
+                artist: "Ariana Grande",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "E3 - D5",
+                rangeLow: "E3",
+                rangeHigh: "D5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 587.33,
+                genre: "Pop/R&B",
+                year: 2018,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "Thought I'd end up with Sean", note: "E4", frequency: 329.63 },
+                    { text: "But he wasn't a match", note: "F4", frequency: 349.23 },
+                    { text: "Wrote some songs about Ricky", note: "G4", frequency: 392.00 },
+                    { text: "Now I listen and laugh", note: "A4", frequency: 440.00 },
+                    { text: "Even almost got married", note: "B4", frequency: 493.88 },
+                    { text: "And for Pete, I'm so thankful", note: "C5", frequency: 523.25 },
+                    { text: "Wish I could say thank you to Malcolm", note: "D5", frequency: 587.33 },
+                    { text: "'Cause he was an angel", note: "C5", frequency: 523.25 },
+                ]
+            },
+            
+            // ============ ED SHEERAN ============
+            {
+                title: "Perfect",
+                artist: "Ed Sheeran",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "G2 - G4",
+                rangeLow: "G2",
+                rangeHigh: "G4",
+                rangeLowFreq: 98.00,
+                rangeHighFreq: 392.00,
+                genre: "Pop/Ballad",
+                year: 2017,
+                recommendedFor: ["Tenor", "Barítono", "Baixo"],
+                lyrics: [
+                    { text: "I found a love for me", note: "G3", frequency: 196.00 },
+                    { text: "Darling, just dive right in", note: "A3", frequency: 220.00 },
+                    { text: "And follow my lead", note: "B3", frequency: 246.94 },
+                    { text: "Well, I found a girl, beautiful and sweet", note: "C4", frequency: 261.63 },
+                    { text: "I never knew you were the someone", note: "D4", frequency: 293.66 },
+                    { text: "Waiting for me", note: "E4", frequency: 329.63 },
+                    { text: "'Cause we were just kids when we fell in love", note: "F4", frequency: 349.23 },
+                    { text: "Not knowing what it was", note: "G4", frequency: 392.00 },
+                ]
+            },
+            {
+                title: "Shape of You",
+                artist: "Ed Sheeran",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "F#3 - A4",
+                rangeLow: "F#3",
+                rangeHigh: "A4",
+                rangeLowFreq: 185.00,
+                rangeHighFreq: 440.00,
+                genre: "Pop",
+                year: 2017,
+                recommendedFor: ["Tenor", "Barítono", "Baixo"],
+                lyrics: [
+                    { text: "The club isn't the best place to find a lover", note: "F#3", frequency: 185.00 },
+                    { text: "So the bar is where I go", note: "G#3", frequency: 207.65 },
+                    { text: "Me and my friends at the table doing shots", note: "A#3", frequency: 233.08 },
+                    { text: "Drinking fast and then we talk slow", note: "B3", frequency: 246.94 },
+                    { text: "Come over and start up a conversation", note: "C#4", frequency: 277.18 },
+                    { text: "With just me and trust me", note: "D#4", frequency: 311.13 },
+                    { text: "I'll give it a chance now", note: "E4", frequency: 329.63 },
+                    { text: "Take my hand, stop", note: "F#4", frequency: 369.99 },
+                ]
+            },
+            
+            // ============ TAYLOR SWIFT ============
+            {
+                title: "Love Story",
+                artist: "Taylor Swift",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "E3 - E5",
+                rangeLow: "E3",
+                rangeHigh: "E5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 659.25,
+                genre: "Country/Pop",
+                year: 2008,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "We were both young when I first saw you", note: "E4", frequency: 329.63 },
+                    { text: "I close my eyes and the flashback starts", note: "F#4", frequency: 369.99 },
+                    { text: "I'm standing there", note: "G#4", frequency: 415.30 },
+                    { text: "On a balcony in summer air", note: "A4", frequency: 440.00 },
+                    { text: "See the lights, see the party, the ball gowns", note: "B4", frequency: 493.88 },
+                    { text: "See you make your way through the crowd", note: "C5", frequency: 523.25 },
+                    { text: "And say, Hello", note: "D5", frequency: 587.33 },
+                    { text: "Little did I know", note: "E5", frequency: 659.25 },
+                ]
+            },
+            {
+                title: "Shake It Off",
+                artist: "Taylor Swift",
+                difficulty: "Médio",
+                difficultyClass: "medium",
+                vocalRange: "F3 - E5",
+                rangeLow: "F3",
+                rangeHigh: "E5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 659.25,
+                genre: "Pop",
+                year: 2014,
+                recommendedFor: ["Soprano", "Mezzo-Soprano", "Tenor"],
+                lyrics: [
+                    { text: "I stay out too late", note: "F4", frequency: 349.23 },
+                    { text: "Got nothing in my brain", note: "G4", frequency: 392.00 },
+                    { text: "That's what people say", note: "A4", frequency: 440.00 },
+                    { text: "That's what people say", note: "B4", frequency: 493.88 },
+                    { text: "I go on too many dates", note: "C5", frequency: 523.25 },
+                    { text: "But I can't make them stay", note: "D5", frequency: 587.33 },
+                    { text: "At least that's what people say", note: "E5", frequency: 659.25 },
+                    { text: "That's what people say", note: "D5", frequency: 587.33 },
+                ]
+            },
+            
+            // ============ BRUNO MARS ============
+            {
+                title: "Just the Way You Are",
+                artist: "Bruno Mars",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "D3 - A4",
+                rangeLow: "D3",
+                rangeHigh: "A4",
+                rangeLowFreq: 146.83,
+                rangeHighFreq: 440.00,
+                genre: "Pop/R&B",
+                year: 2010,
+                recommendedFor: ["Tenor", "Barítono", "Baixo"],
+                lyrics: [
+                    { text: "Oh, her eyes, her eyes", note: "D4", frequency: 293.66 },
+                    { text: "Make the stars look like they're not shining", note: "E4", frequency: 329.63 },
+                    { text: "Her hair, her hair", note: "F#4", frequency: 369.99 },
+                    { text: "Falls perfectly without her trying", note: "G4", frequency: 392.00 },
+                    { text: "She's so beautiful", note: "A4", frequency: 440.00 },
+                    { text: "And I tell her everyday", note: "B4", frequency: 493.88 },
+                    { text: "Yeah, I know, I know", note: "C5", frequency: 523.25 },
+                    { text: "When I compliment her she won't believe me", note: "D5", frequency: 587.33 },
+                ]
+            },
+            {
+                title: "Uptown Funk",
+                artist: "Bruno Mars",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "E3 - E5",
+                rangeLow: "E3",
+                rangeHigh: "E5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 659.25,
+                genre: "Funk/Pop",
+                year: 2014,
+                recommendedFor: ["Tenor", "Barítono"],
+                lyrics: [
+                    { text: "This hit, that ice cold", note: "E4", frequency: 329.63 },
+                    { text: "Michelle Pfeiffer, that white gold", note: "F#4", frequency: 369.99 },
+                    { text: "This one for them hood girls", note: "G#4", frequency: 415.30 },
+                    { text: "Them good girls straight masterpieces", note: "A4", frequency: 440.00 },
+                    { text: "Stylin', wilin', livin' it up in the city", note: "B4", frequency: 493.88 },
+                    { text: "Got Chucks on with Saint Laurent", note: "C5", frequency: 523.25 },
+                    { text: "Got kiss myself, I'm so pretty", note: "D5", frequency: 587.33 },
+                    { text: "I'm too hot (hot damn)", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ WHITNEY HOUSTON ============
+            {
+                title: "I Will Always Love You",
+                artist: "Whitney Houston",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "E3 - B5",
+                rangeLow: "E3",
+                rangeHigh: "B5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 987.77,
+                genre: "Pop/Soul",
+                year: 1992,
+                recommendedFor: ["Soprano", "Mezzo-Soprano"],
+                lyrics: [
+                    { text: "If I should stay", note: "E4", frequency: 329.63 },
+                    { text: "I would only be in your way", note: "F#4", frequency: 369.99 },
+                    { text: "So I'll go, but I know", note: "G#4", frequency: 415.30 },
+                    { text: "I'll think of you every step of the way", note: "A4", frequency: 440.00 },
+                    { text: "And I will always love you", note: "B4", frequency: 493.88 },
+                    { text: "I will always love you", note: "C5", frequency: 523.25 },
+                    { text: "You, my darling, you", note: "D5", frequency: 587.33 },
+                    { text: "Bittersweet memories", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ MARIAH CAREY ============
+            {
+                title: "Hero",
+                artist: "Mariah Carey",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "F3 - G5",
+                rangeLow: "F3",
+                rangeHigh: "G5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 784.00,
+                genre: "Pop/Ballad",
+                year: 1993,
+                recommendedFor: ["Soprano", "Mezzo-Soprano"],
+                lyrics: [
+                    { text: "There's a hero", note: "F4", frequency: 349.23 },
+                    { text: "If you look inside your heart", note: "G4", frequency: 392.00 },
+                    { text: "You don't have to be afraid", note: "A4", frequency: 440.00 },
+                    { text: "Of what you are", note: "B4", frequency: 493.88 },
+                    { text: "There's an answer", note: "C5", frequency: 523.25 },
+                    { text: "If you reach into your soul", note: "D5", frequency: 587.33 },
+                    { text: "And the sorrow that you know", note: "E5", frequency: 659.25 },
+                    { text: "Will melt away", note: "F5", frequency: 698.46 },
+                ]
+            },
+            
+            // ============ SIA ============
+            {
+                title: "Chandelier",
+                artist: "Sia",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "E3 - F5",
+                rangeLow: "E3",
+                rangeHigh: "F5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 698.46,
+                genre: "Pop",
+                year: 2014,
+                recommendedFor: ["Soprano", "Mezzo-Soprano"],
+                lyrics: [
+                    { text: "Party girls don't get hurt", note: "E4", frequency: 329.63 },
+                    { text: "Can't feel anything", note: "F4", frequency: 349.23 },
+                    { text: "When will I learn?", note: "G4", frequency: 392.00 },
+                    { text: "I push it down, push it down", note: "A4", frequency: 440.00 },
+                    { text: "I'm the one for a good time call", note: "B4", frequency: 493.88 },
+                    { text: "Phone's blowin' up, ringin' my doorbell", note: "C5", frequency: 523.25 },
+                    { text: "I feel the love, feel the love", note: "D5", frequency: 587.33 },
+                    { text: "One, two, three, one, two, three, drink", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ SAM SMITH ============
+            {
+                title: "Stay With Me",
+                artist: "Sam Smith",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "E3 - E5",
+                rangeLow: "E3",
+                rangeHigh: "E5",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 659.25,
+                genre: "Pop/Soul",
+                year: 2014,
+                recommendedFor: ["Tenor", "Barítono", "Contralto"],
+                lyrics: [
+                    { text: "Guess it's true, I'm not good at a one-night stand", note: "E4", frequency: 329.63 },
+                    { text: "But I still need love 'cause I'm just a man", note: "F#4", frequency: 369.99 },
+                    { text: "These nights never seem to go to plan", note: "G#4", frequency: 415.30 },
+                    { text: "I don't want you to leave", note: "A4", frequency: 440.00 },
+                    { text: "Will you hold my hand?", note: "B4", frequency: 493.88 },
+                    { text: "Oh, won't you stay with me?", note: "C5", frequency: 523.25 },
+                    { text: "'Cause you're all I need", note: "D5", frequency: 587.33 },
+                    { text: "This ain't love, it's clear to see", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ JOHN LEGEND ============
+            {
+                title: "All of Me",
+                artist: "John Legend",
+                difficulty: "Fácil",
+                difficultyClass: "easy",
+                vocalRange: "E3 - G4",
+                rangeLow: "E3",
+                rangeHigh: "G4",
+                rangeLowFreq: 164.81,
+                rangeHighFreq: 392.00,
+                genre: "R&B/Soul",
+                year: 2013,
+                recommendedFor: ["Tenor", "Barítono", "Baixo"],
+                lyrics: [
+                    { text: "What would I do without your smart mouth?", note: "E4", frequency: 329.63 },
+                    { text: "Drawing me in, and you kicking me out", note: "F#4", frequency: 369.99 },
+                    { text: "You've got my head spinning", note: "G#4", frequency: 415.30 },
+                    { text: "No kidding, I can't pin you down", note: "A4", frequency: 440.00 },
+                    { text: "What's going on in that beautiful mind?", note: "B4", frequency: 493.88 },
+                    { text: "I'm on your magical mystery ride", note: "C5", frequency: 523.25 },
+                    { text: "And I'm so dizzy, don't know what hit me", note: "D5", frequency: 587.33 },
+                    { text: "But I'll be alright", note: "E5", frequency: 659.25 },
+                ]
+            },
+            
+            // ============ CÉLINE DION ============
+            {
+                title: "My Heart Will Go On",
+                artist: "Céline Dion",
+                difficulty: "Difícil",
+                difficultyClass: "hard",
+                vocalRange: "F3 - F5",
+                rangeLow: "F3",
+                rangeHigh: "F5",
+                rangeLowFreq: 174.61,
+                rangeHighFreq: 698.46,
+                genre: "Pop/Ballad",
+                year: 1997,
+                recommendedFor: ["Soprano", "Mezzo-Soprano"],
+                lyrics: [
+                    { text: "Every night in my dreams", note: "F4", frequency: 349.23 },
+                    { text: "I see you, I feel you", note: "G4", frequency: 392.00 },
+                    { text: "That is how I know you go on", note: "A4", frequency: 440.00 },
+                    { text: "Far across the distance", note: "B4", frequency: 493.88 },
+                    { text: "And spaces between us", note: "C5", frequency: 523.25 },
+                    { text: "You have come to show you go on", note: "D5", frequency: 587.33 },
+                    { text: "Near, far, wherever you are", note: "E5", frequency: 659.25 },
+                    { text: "I believe that the heart does go on", note: "F5", frequency: 698.46 },
+                ]
             }
+        ];
+
+        // Notas para teste de voz
+        const voiceTestNotes = [
+            { note: "E3", frequency: 164.81, label: "Grave (Baixo)" },
+            { note: "G3", frequency: 196.00, label: "Grave-Médio" },
+            { note: "C4", frequency: 261.63, label: "Médio (Dó Central)" },
+            { note: "E4", frequency: 329.63, label: "Médio-Agudo" },
+            { note: "G4", frequency: 392.00, label: "Agudo" },
+            { note: "C5", frequency: 523.25, label: "Muito Agudo" }
         ];
 
         // Inicialização
@@ -540,10 +1409,17 @@
             
             // Adicionar listeners para teclado
             document.addEventListener('keydown', handleKeyboard);
+            
+            console.log('VocalCoach Pro inicializado com sucesso!');
+            console.log(`Total de músicas disponíveis: ${songs.length}`);
         }
 
         // Lidar com atalhos de teclado
         function handleKeyboard(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
             switch(event.key.toLowerCase()) {
                 case 'm':
                     toggleMicrophone();
@@ -556,30 +1432,262 @@
                         startPractice();
                     }
                     break;
-                case 's':
-                    if (app.isPracticing) {
-                        stopPractice();
-                    }
+                case 'escape':
+                    stopPractice();
+                    closeVoiceTest();
                     break;
             }
         }
 
+        // Iniciar teste de voz
+        async function startVoiceTest() {
+            if (!app.isMicActive) {
+                showFeedback('⚠️ Ative o microfone primeiro!', 'warning');
+                await startMicrophone();
+            }
+            
+            if (!app.isMicActive) {
+                return;
+            }
+            
+            // Resetar estado do teste
+            app.isTesting = true;
+            app.testNoteIndex = 0;
+            app.testNotes = [];
+            app.lowestNote = null;
+            app.highestNote = null;
+            
+            // Mostrar modal
+            document.getElementById('voiceTestModal').classList.add('show');
+            
+            // Iniciar primeira nota do teste
+            showTestNote();
+            
+            showFeedback('🎤 Teste de voz iniciado! Cante as notas indicadas.', 'info');
+        }
+
+        // Mostrar nota do teste
+        function showTestNote() {
+            if (app.testNoteIndex >= voiceTestNotes.length) {
+                completeVoiceTest();
+                return;
+            }
+            
+            const testNote = voiceTestNotes[app.testNoteIndex];
+            document.getElementById('testNoteDisplay').textContent = testNote.note;
+            document.getElementById('testFrequencyDisplay').textContent = `${testNote.label} - ${Math.round(testNote.frequency)} Hz`;
+            document.getElementById('testInstruction').textContent = `Cante a nota ${testNote.note} e mantenha por 1 segundo`;
+            
+            // Atualizar barra de progresso
+            const progress = (app.testNoteIndex / voiceTestNotes.length) * 100;
+            document.getElementById('testProgressFill').style.width = `${progress}%`;
+            
+            // Definir nota alvo para o teste
+            app.targetFrequency = testNote.frequency;
+            
+            // Mostrar nota alvo no indicador
+            const targetNote = document.getElementById('targetNote');
+            const minFreq = 100;
+            const maxFreq = 1000;
+            const position = ((app.targetFrequency - minFreq) / (maxFreq - minFreq)) * 100;
+            targetNote.style.top = `${Math.max(0, Math.min(100, 100 - position))}%`;
+            targetNote.style.display = 'block';
+        }
+
+        // Verificar nota do teste
+        function checkTestNote(frequency) {
+            if (!app.isTesting || app.testNoteIndex >= voiceTestNotes.length) return;
+            
+            const testNote = voiceTestNotes[app.testNoteIndex];
+            const cents = 1200 * Math.log2(frequency / testNote.frequency);
+            
+            if (Math.abs(cents) <= app.tolerance) {
+                // Nota atingida
+                if (!app.noteHoldStart) {
+                    app.noteHoldStart = Date.now();
+                }
+                
+                const holdDuration = Date.now() - app.noteHoldStart;
+                
+                if (holdDuration >= app.requiredHoldDuration) {
+                    // Registrar nota
+                    app.testNotes.push({
+                        note: testNote.note,
+                        frequency: frequency,
+                        targetFrequency: testNote.frequency
+                    });
+                    
+                    // Atualizar menor e maior nota
+                    if (!app.lowestNote || frequency < app.lowestNote.frequency) {
+                        app.lowestNote = { note: testNote.note, frequency: frequency };
+                    }
+                    if (!app.highestNote || frequency > app.highestNote.frequency) {
+                        app.highestNote = { note: testNote.note, frequency: frequency };
+                    }
+                    
+                    showFeedback(`✅ Nota ${testNote.note} atingida!`, 'success');
+                    
+                    // Avançar para próxima nota
+                    app.testNoteIndex++;
+                    app.noteHoldStart = null;
+                    
+                    setTimeout(() => {
+                        showTestNote();
+                    }, 500);
+                } else {
+                    const progress = Math.round((holdDuration / app.requiredHoldDuration) * 100);
+                    document.getElementById('testInstruction').textContent = `Mantendo a nota... ${progress}%`;
+                }
+            } else {
+                app.noteHoldStart = null;
+                
+                const direction = cents > 0 ? 'desça' : 'suba';
+                const centsAbs = Math.abs(cents);
+                
+                if (centsAbs <= app.tolerance * 2) {
+                    document.getElementById('testInstruction').textContent = `Quase! ${direction} ${Math.round(centsAbs)} cents`;
+                } else {
+                    const semitones = Math.round(centsAbs / 100);
+                    document.getElementById('testInstruction').textContent = `${direction} ${semitones} semitom(ns)`;
+                }
+            }
+        }
+
+        // Completar teste de voz
+        function completeVoiceTest() {
+            app.isTesting = false;
+            app.testCompleted = true;
+            
+            // Determinar tipo de voz
+            const voiceType = determineVoiceTypeFromTest();
+            app.voiceType = voiceType.type;
+            app.voiceRange = voiceType.range;
+            
+            // Atualizar display
+            document.getElementById('testProgressFill').style.width = '100%';
+            document.getElementById('testInstruction').textContent = '✅ Teste completo!';
+            
+            // Mostrar resultado
+            const voiceTypeDisplay = document.getElementById('voiceTypeDisplay');
+            voiceTypeDisplay.innerHTML = `
+                <span class="voice-type-badge">🎤 Tipo de voz: ${app.voiceType}</span>
+                <span class="voice-range-info">📊 Alcance: ${app.lowestNote.note} - ${app.highestNote.note}</span>
+            `;
+            
+            // Encontrar músicas recomendadas
+            findRecommendedSongs();
+            
+            showFeedback(`🎉 Tipo de voz identificado: ${app.voiceType}! Músicas recomendadas!`, 'success');
+            
+            // Fechar modal após 2 segundos
+            setTimeout(() => {
+                closeVoiceTest();
+            }, 2000);
+        }
+
+        // Determinar tipo de voz do teste
+        function determineVoiceTypeFromTest() {
+            const lowest = app.lowestNote ? app.lowestNote.frequency : 200;
+            const highest = app.highestNote ? app.highestNote.frequency : 400;
+            
+            let type = '';
+            let range = '';
+            
+            if (lowest < 150 && highest > 500) {
+                type = "Soprano";
+                range = "E3 - C6";
+            } else if (lowest < 180 && highest > 400) {
+                type = "Mezzo-Soprano";
+                range = "F3 - A5";
+            } else if (lowest < 150 && highest < 400) {
+                type = "Contralto";
+                range = "D3 - F5";
+            } else if (lowest > 130 && highest > 350) {
+                type = "Tenor";
+                range = "C3 - B4";
+            } else if (lowest > 100 && highest > 300) {
+                type = "Barítono";
+                range = "A2 - G4";
+            } else {
+                type = "Baixo";
+                range = "E2 - E4";
+            }
+            
+            return { type, range };
+        }
+
+        // Encontrar músicas recomendadas
+        function findRecommendedSongs() {
+            if (!app.voiceType) return;
+            
+            app.recommendedSongs = songs.filter(song => 
+                song.recommendedFor.includes(app.voiceType)
+            );
+            
+            console.log(`Músicas recomendadas para ${app.voiceType}:`, app.recommendedSongs.length);
+        }
+
+        // Mostrar músicas recomendadas
+        function showRecommendedSongs() {
+            if (!app.voiceType) {
+                showFeedback('⚠️ Faça o teste de voz primeiro!', 'warning');
+                startVoiceTest();
+                return;
+            }
+            
+            if (app.recommendedSongs.length === 0) {
+                findRecommendedSongs();
+            }
+            
+            displaySongs(app.recommendedSongs);
+            showFeedback(`⭐ Mostrando ${app.recommendedSongs.length} músicas recomendadas para ${app.voiceType}!`, 'success');
+        }
+
+        // Fechar teste de voz
+        function closeVoiceTest() {
+            app.isTesting = false;
+            document.getElementById('voiceTestModal').classList.remove('show');
+            document.getElementById('targetNote').style.display = 'none';
+        }
+
+        // Filtrar músicas
+        function filterSongs() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const filteredSongs = songs.filter(song => 
+                song.title.toLowerCase().includes(searchTerm) ||
+                song.artist.toLowerCase().includes(searchTerm) ||
+                song.genre.toLowerCase().includes(searchTerm)
+            );
+            
+            displaySongs(filteredSongs);
+        }
+
         // Exibir músicas na lista
-        function displaySongs() {
+        function displaySongs(songsToShow = songs) {
             const songList = document.getElementById('songList');
             songList.innerHTML = '';
             
-            songs.forEach((song, index) => {
+            songsToShow.forEach((song) => {
                 const songElement = document.createElement('div');
                 songElement.className = 'song-item';
+                
+                // Verificar se é recomendada
+                if (app.voiceType && song.recommendedFor.includes(app.voiceType)) {
+                    songElement.classList.add('recommended');
+                }
+                
                 songElement.innerHTML = `
                     <div>
                         <strong>${song.title}</strong>
                         <div class="song-artist">${song.artist}</div>
-                        <div class="song-artist">🎯 ${song.difficulty} | 🎵 ${song.vocalRange}</div>
+                        <div class="song-artist">🎵 ${song.vocalRange}</div>
+                        <span class="difficulty-badge difficulty-${song.difficultyClass}">${song.difficulty}</span>
+                        <span class="genre-badge">${song.genre}</span>
                     </div>
                 `;
-                songElement.onclick = () => selectSong(index);
+                
+                const actualIndex = songs.indexOf(song);
+                songElement.onclick = () => selectSong(actualIndex);
                 songList.appendChild(songElement);
             });
         }
@@ -592,17 +1700,24 @@
             app.totalNotes = 0;
             app.noteHoldStart = null;
             
-            // Atualizar interface
-            document.querySelectorAll('.song-item').forEach((item, i) => {
-                item.classList.toggle('active', i === index);
+            document.querySelectorAll('.song-item').forEach((item) => {
+                item.classList.remove('active');
             });
+            
+            const songItems = document.querySelectorAll('.song-item');
+            if (songItems[index]) {
+                songItems[index].classList.add('active');
+            }
             
             displayCurrentLyric();
             updateProgress();
             document.getElementById('startButton').disabled = !app.isMicActive;
             
-            // Feedback ao usuário
-            showFeedback(`🎵 "${app.currentSong.title}" selecionada! Prepare-se para cantar!`, 'info');
+            const compatibility = app.voiceType && app.currentSong.recommendedFor.includes(app.voiceType) 
+                ? '✅ Compatível com sua voz!' 
+                : '⚠️ Pode ser desafiadora para seu tipo de voz';
+            
+            showFeedback(`🎵 "${app.currentSong.title}" selecionada! ${compatibility}`, 'info');
         }
 
         // Exibir letra atual
@@ -624,7 +1739,6 @@
             
             lyricsDisplay.innerHTML = html;
             
-            // Auto-scroll para a letra atual
             const currentLyricElement = lyricsDisplay.querySelector('.current-lyric');
             if (currentLyricElement) {
                 currentLyricElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -640,21 +1754,27 @@
             document.getElementById('songProgress').textContent = `${Math.round(progress)}% completo`;
         }
 
-        // Mostrar feedback
+        // Mostrar feedback com debounce
         function showFeedback(message, type = 'info') {
             const feedbackBox = document.getElementById('feedbackBox');
+            const now = Date.now();
+            
+            if (now - app.lastFeedbackTime < 500 && type !== 'success') {
+                return;
+            }
+            
+            app.lastFeedbackTime = now;
+            
             feedbackBox.textContent = message;
             feedbackBox.className = `feedback-box show feedback-${type}`;
             
-            // Limpar timeout anterior
             if (app.feedbackTimeout) {
                 clearTimeout(app.feedbackTimeout);
             }
             
-            // Auto-esconder após 3 segundos
             app.feedbackTimeout = setTimeout(() => {
                 feedbackBox.classList.remove('show');
-            }, 3000);
+            }, 2000);
         }
 
         // Alternar microfone
@@ -669,26 +1789,28 @@
         // Iniciar microfone
         async function startMicrophone() {
             try {
-                // Solicitar acesso ao microfone
                 app.mediaStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         echoCancellation: false,
                         noiseSuppression: false,
-                        autoGainControl: false
+                        autoGainControl: false,
+                        sampleRate: 44100,
+                        channelCount: 1
                     } 
                 });
                 
-                // Criar contexto de áudio
                 app.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 app.analyser = app.audioContext.createAnalyser();
                 app.analyser.fftSize = 4096;
-                app.analyser.smoothingTimeConstant = 0.5;
+                app.analyser.smoothingTimeConstant = 0.3;
+                app.analyser.minDecibels = -90;
+                app.analyser.maxDecibels = -10;
                 
-                // Conectar microfone ao analisador
                 app.microphone = app.audioContext.createMediaStreamSource(app.mediaStream);
                 app.microphone.connect(app.analyser);
                 
                 app.isMicActive = true;
+                
                 document.getElementById('micButton').textContent = '🎤 Desativar Microfone';
                 document.getElementById('connectionStatus').textContent = '🟢 Microfone Conectado';
                 document.getElementById('connectionStatus').style.color = '#00B894';
@@ -697,13 +1819,14 @@
                     document.getElementById('startButton').disabled = false;
                 }
                 
-                // Iniciar detecção de pitch
+                document.getElementById('pitchLine').style.display = 'block';
+                
                 startPitchDetection();
                 
-                showFeedback('✅ Microfone ativado! Vamos começar!', 'success');
+                showFeedback('✅ Microfone ativado! Faça o teste de voz!', 'success');
             } catch (error) {
                 console.error('Erro ao acessar microfone:', error);
-                showFeedback('❌ Erro ao acessar microfone. Verifique as permissões.', 'warning');
+                showFeedback('❌ Erro ao acessar microfone. Verifique as permissões.', 'error');
             }
         }
 
@@ -730,36 +1853,38 @@
             }
             
             app.isMicActive = false;
+            
             document.getElementById('micButton').textContent = '🎤 Ativar Microfone';
             document.getElementById('connectionStatus').textContent = '🔴 Microfone Desconectado';
             document.getElementById('connectionStatus').style.color = '#FF6B6B';
             document.getElementById('startButton').disabled = true;
             
-            // Resetar display
-            document.getElementById('frequencyDisplay').textContent = '0 Hz';
+            document.getElementById('frequencyDisplay').textContent = '-- Hz';
             document.getElementById('noteDisplay').textContent = '--';
+            document.getElementById('pitchLine').style.display = 'none';
         }
 
         // Iniciar detecção de pitch
         function startPitchDetection() {
-            if (!app.isMicActive) return;
+            if (!app.isMicActive || !app.analyser) return;
             
             const bufferLength = app.analyser.fftSize;
             const buffer = new Float32Array(bufferLength);
             
             function detectPitchLoop() {
-                if (!app.isMicActive) return;
+                if (!app.isMicActive || !app.analyser) return;
                 
                 app.analyser.getFloatTimeDomainData(buffer);
                 
-                // Detectar pitch usando autocorrelação
                 const frequency = autoCorrelate(buffer, app.audioContext.sampleRate);
                 
-                if (frequency > 50 && frequency < 2000) { // Faixa de voz humana
+                if (frequency > 50 && frequency < 2000) {
                     app.currentFrequency = frequency;
                     updatePitchDisplay(frequency);
                     
-                    if (app.isPracticing) {
+                    if (app.isTesting) {
+                        checkTestNote(frequency);
+                    } else if (app.isPracticing) {
                         checkNoteAccuracy(frequency);
                     }
                 }
@@ -770,38 +1895,34 @@
             detectPitchLoop();
         }
 
-        // Autocorrelação para detecção de pitch (versão corrigida)
+        // Autocorrelação para detecção de pitch
         function autoCorrelate(buffer, sampleRate) {
-            // Verificar se há sinal suficiente
             let rms = 0;
             for (let i = 0; i < buffer.length; i++) {
-                rms += buffer[i] * buffer[i];
+                const val = buffer[i];
+                rms += val * val;
             }
             rms = Math.sqrt(rms / buffer.length);
             
-            if (rms < 0.01) return -1; // Silêncio
-            
-            // Normalizar buffer
-            let maxAbs = 0;
-            for (let i = 0; i < buffer.length; i++) {
-                const abs = Math.abs(buffer[i]);
-                if (abs > maxAbs) maxAbs = abs;
+            if (rms < 0.01) {
+                return -1;
             }
             
-            // Autocorrelação
-            const minSamples = Math.floor(sampleRate / 2000); // Frequência máxima: 2000 Hz
-            const maxSamples = Math.floor(sampleRate / 50);   // Frequência mínima: 50 Hz
+            const minSamples = Math.floor(sampleRate / 2000);
+            const maxSamples = Math.floor(sampleRate / 50);
             let bestOffset = -1;
             let bestCorrelation = 0;
+            
+            const correlationLength = Math.floor(buffer.length / 2);
             
             for (let offset = minSamples; offset < maxSamples; offset++) {
                 let correlation = 0;
                 
-                for (let i = 0; i < buffer.length - offset; i++) {
+                for (let i = 0; i < correlationLength; i++) {
                     correlation += buffer[i] * buffer[i + offset];
                 }
                 
-                correlation = correlation / (buffer.length - offset);
+                correlation = correlation / correlationLength;
                 
                 if (correlation > bestCorrelation) {
                     bestCorrelation = correlation;
@@ -809,9 +1930,10 @@
                 }
             }
             
-            if (bestOffset > 0 && bestCorrelation > 0.5) {
+            if (bestOffset > 0 && bestCorrelation > 0.1) {
                 const frequency = sampleRate / bestOffset;
-                if (frequency > 50 && frequency < 2000) {
+                
+                if (frequency >= 50 && frequency <= 2000) {
                     return frequency;
                 }
             }
@@ -826,9 +1948,7 @@
             const note = frequencyToNote(frequency);
             document.getElementById('noteDisplay').textContent = `Nota: ${note}`;
             
-            // Atualizar posição da linha no indicador
             const pitchLine = document.getElementById('pitchLine');
-            const pitchIndicator = document.getElementById('pitchIndicator');
             const minFreq = 100;
             const maxFreq = 1000;
             const position = ((frequency - minFreq) / (maxFreq - minFreq)) * 100;
@@ -870,10 +1990,8 @@
             document.getElementById('startButton').disabled = true;
             document.getElementById('startButton').textContent = '🎤 Cantando...';
             
-            // Iniciar timer
             app.timerInterval = setInterval(updateTimer, 1000);
             
-            // Definir primeira nota alvo
             setTargetNote();
             
             showFeedback('🎵 Comece a cantar! Siga a letra e mantenha o tom!', 'success');
@@ -908,17 +2026,16 @@
             const targetLyric = app.currentSong.lyrics[app.currentLyricIndex];
             app.targetFrequency = targetLyric.frequency;
             
-            // Atualizar posição da nota alvo no indicador
             const targetNote = document.getElementById('targetNote');
             const minFreq = 100;
             const maxFreq = 1000;
             const position = ((app.targetFrequency - minFreq) / (maxFreq - minFreq)) * 100;
             targetNote.style.top = `${Math.max(0, Math.min(100, 100 - position))}%`;
+            targetNote.style.display = 'block';
             
             displayCurrentLyric();
             updateProgress();
             
-            // Mostrar instrução
             showFeedback(`🎯 Cante a nota ${targetLyric.note} (${Math.round(targetLyric.frequency)} Hz)`, 'info');
         }
 
@@ -929,9 +2046,7 @@
             const targetFreq = app.targetFrequency;
             const cents = 1200 * Math.log2(currentFreq / targetFreq);
             
-            // Verificar se está na nota alvo
             if (Math.abs(cents) <= app.tolerance) {
-                // Nota está correta
                 if (!app.noteHoldStart) {
                     app.noteHoldStart = Date.now();
                 }
@@ -939,13 +2054,10 @@
                 const holdDuration = Date.now() - app.noteHoldStart;
                 
                 if (holdDuration >= app.requiredHoldDuration) {
-                    // Nota atingida!
                     app.notesHit++;
-                    app.totalNotes++;
                     
                     showFeedback(`🎯 Excelente! Nota ${frequencyToNote(targetFreq)} atingida!`, 'success');
                     
-                    // Avançar para próxima nota
                     setTimeout(() => {
                         app.currentLyricIndex++;
                         app.noteHoldStart = null;
@@ -955,18 +2067,13 @@
                         } else {
                             finishSong();
                         }
-                    }, 300);
+                    }, 500);
                 } else {
-                    // Mostrar progresso de segurar a nota
                     const progress = Math.round((holdDuration / app.requiredHoldDuration) * 100);
-                    if (progress % 25 === 0) {
-                        showFeedback(`🎵 Segure a nota... ${progress}%`, 'info');
-                    }
+                    document.getElementById('notesHitStat').textContent = `${app.notesHit} (${progress}%)`;
                 }
             } else {
-                // Nota não está correta
                 app.noteHoldStart = null;
-                app.totalNotes++;
                 
                 const direction = cents > 0 ? 'desça' : 'suba';
                 const centsAbs = Math.abs(cents);
@@ -979,6 +2086,7 @@
                 }
             }
             
+            app.totalNotes++;
             updateStats();
         }
 
@@ -997,39 +2105,9 @@
             document.getElementById('startButton').disabled = !app.isMicActive;
             document.getElementById('startButton').textContent = '▶️ Iniciar Treino';
             
-            // Determinar tipo de voz baseado no desempenho
-            determineVoiceType(accuracy);
+            document.getElementById('targetNote').style.display = 'none';
+            
             updateStats();
-        }
-
-        // Determinar tipo de voz
-        function determineVoiceType(accuracy) {
-            let voiceType = '';
-            let description = '';
-            
-            if (accuracy > 85) {
-                voiceType = "Soprano/Tenor";
-                description = "Voz aguda com excelente controle";
-            } else if (accuracy > 70) {
-                voiceType = "Mezzo-Soprano/Barítono";
-                description = "Voz média com bom controle";
-            } else if (accuracy > 50) {
-                voiceType = "Contralto/Baixo";
-                description = "Voz grave com controle moderado";
-            } else {
-                voiceType = "Em desenvolvimento";
-                description = "Continue praticando!";
-            }
-            
-            app.voiceType = voiceType;
-            
-            const voiceTypeDisplay = document.getElementById('voiceTypeDisplay');
-            voiceTypeDisplay.innerHTML = `
-                <div class="voice-type-badge">
-                    🎤 Tipo de voz: ${voiceType}
-                    <br><small>${description}</small>
-                </div>
-            `;
         }
 
         // Atualizar timer
@@ -1048,7 +2126,10 @@
         function updateStats() {
             const accuracy = app.totalNotes > 0 ? Math.round((app.notesHit / app.totalNotes) * 100) : 0;
             document.getElementById('accuracyStat').textContent = `${accuracy}%`;
-            document.getElementById('notesHitStat').textContent = app.notesHit;
+            
+            if (!app.noteHoldStart) {
+                document.getElementById('notesHitStat').textContent = app.notesHit;
+            }
         }
 
         // Atualizar status da conexão
@@ -1064,7 +2145,11 @@
         }
 
         // Inicializar aplicativo
-        init();
+        window.addEventListener('load', init);
+        
+        console.log('VocalCoach Pro carregado com sucesso!');
+        console.log('Faça o teste de voz para descobrir seu tipo vocal!');
+        console.log('O app recomendará músicas compatíveis com sua voz!');
     </script>
 </body>
 </html>
