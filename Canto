@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocalCoach Pro - Seu Professor de Canto Inteligente</title>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #A29BFE;
+            --accent: #FD79A8;
+            --success: #00B894;
+            --warning: #FDCB6E;
+            --background: #2D3436;
+            --surface: #353B48;
+            --text: #FFFFFF;
+            --text-secondary: #B2BEC3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--background);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 35px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #FDCB6E;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .section {
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .voice-detection {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pitch-indicator {
+            width: 100%;
+            height: 100px;
+            background: var(--surface);
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pitch-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            left: 0;
+            transition: top 0.1s;
+        }
+
+        .target-note {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: var(--success);
+            left: 0;
+        }
+
+        .frequency-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FDCB6E;
+            margin: 10px 0;
+        }
+
+        .note-display {
+            font-size: 24px;
+            color: var(--secondary);
+        }
+
+        .song-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .song-item {
+            background: var(--background);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .song-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .song-item.active {
+            border-color: var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        .song-artist {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .lyrics-display {
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--background);
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .current-lyric {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 24px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--background);
+        }
+
+        .feedback-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            display: none;
+        }
+
+        .feedback-box.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .feedback-success {
+            background: rgba(0, 184, 148, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .feedback-warning {
+            background: rgba(253, 203, 110, 0.2);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--background);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 5px;
+            transition: width 0.5s;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--background);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FDCB6E;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .frequency-display {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <span class="logo-icon">🎤</span>
+                <h1>VocalCoach <span>Pro</span></h1>
+            </div>
+            <div>
+                <span id="connectionStatus">🔴 Microfone Desconectado</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Detector de Voz em Tempo Real -->
+            <div class="voice-detection">
+                <div class="section-title">
+                    <span>🎵</span> Detector de Tom em Tempo Real
+                </div>
+                <div class="pitch-indicator" id="pitchIndicator">
+                    <div class="target-note" id="targetNote" style="top: 50%;"></div>
+                    <div class="pitch-line" id="pitchLine" style="top: 50%;"></div>
+                </div>
+                <div class="frequency-display" id="frequencyDisplay">0 Hz</div>
+                <div class="note-display" id="noteDisplay">--</div>
+                <div id="feedbackBox" class="feedback-box"></div>
+                <div class="controls">
+                    <button class="btn" id="micButton" onclick="toggleMicrophone()">🎤 Ativar Microfone</button>
+                    <button class="btn btn-success" id="startButton" onclick="startPractice()" disabled>▶️ Iniciar Treino</button>
+                    <button class="btn btn-warning" onclick="stopPractice()">⏹️ Parar</button>
+                </div>
+            </div>
+
+            <!-- Lista de Músicas -->
+            <div class="section">
+                <div class="section-title">
+                    <span>🎼</span> Músicas para Treinar
+                </div>
+                <div class="song-list" id="songList">
+                    <!-- Músicas serão adicionadas aqui -->
+                </div>
+            </div>
+
+            <!-- Letra da Música -->
+            <div class="section">
+                <div class="section-title">
+                    <span>📝</span> Letra da Música
+                </div>
+                <div class="lyrics-display" id="lyricsDisplay">
+                    <p>Selecione uma música para começar</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+                <div id="songProgress">0% completo</div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="section">
+                <div class="section-title">
+                    <span>📊</span> Seu Progresso
+                </div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="accuracyStat">0%</div>
+                        <div class="stat-label">Precisão</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="notesHitStat">0</div>
+                        <div class="stat-label">Notas Atingidas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="sessionTimeStat">0:00</div>
+                        <div class="stat-label">Tempo de Treino</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do aplicativo
+        const app = {
+            isMicActive: false,
+            isPracticing: false,
+            audioContext: null,
+            analyser: null,
+            microphone: null,
+            currentSong: null,
+            currentLyricIndex: 0,
+            notesHit: 0,
+            totalNotes: 0,
+            sessionStart: null,
+            timerInterval: null,
+            voiceType: null,
+            targetFrequency: 0,
+            currentFrequency: 0,
+            tolerance: 30, // cents de tolerância
+        };
+
+        // Banco de dados de músicas
+        const songs = [
+            {
+                title: "Halo",
+                artist: "Beyoncé",
+                difficulty: "Iniciante",
+                vocalRange: "G3 - E5",
+                lyrics: [
+                    { text: "Remember those walls I built", note: "C4", frequency: 261.63 },
+                    { text: "Well, baby, they're tumbling down", note: "D4", frequency: 293.66 },
+                    { text: "And they didn't even put up a fight", note: "E4", frequency: 329.63 },
+                    { text: "They didn't even make a sound", note: "F4", frequency: 349.23 },
+                    { text: "I found a way to let you in", note: "G4", frequency: 392.00 },
+                    { text: "But I never really had a doubt", note: "A4", frequency: 440.00 },
+                    { text: "Standing in the light of your halo", note: "C5", frequency: 523.25 },
+                    { text: "I got my angel now", note: "B4", frequency: 493.88 },
+                ]
+            },
+            {
+                title: "Levitating",
+                artist: "Dua Lipa",
+                difficulty: "Intermediário",
+                vocalRange: "F3 - D5",
+                lyrics: [
+                    { text: "If you wanna run away with me", note: "G3", frequency: 196.00 },
+                    { text: "I know a galaxy and I can take you", note: "A3", frequency: 220.00 },
+                    { text: "For a ride", note: "B3", frequency: 246.94 },
+                    { text: "I had a premonition that we fell", note: "C4", frequency: 261.63 },
+                    { text: "Into a rhythm where the music don't stop", note: "D4", frequency: 293.66 },
+                    { text: "For life", note: "E4", frequency: 329.63 },
+                    { text: "Glitter in the sky, glitter in my eyes", note: "F4", frequency: 349.23 },
+                    { text: "Shining just the way I like", note: "G4", frequency: 392.00 },
+                ]
+            },
+            {
+                title: "Easy On Me",
+                artist: "Adele",
+                difficulty: "Iniciante",
+                vocalRange: "E3 - C5",
+                lyrics: [
+                    { text: "There ain't no gold in this river", note: "E3", frequency: 164.81 },
+                    { text: "That I've been washin' my hands in forever", note: "F3", frequency: 174.61 },
+                    { text: "I know there is hope in these waters", note: "G3", frequency: 196.00 },
+                    { text: "But I can't bring myself to swim", note: "A3", frequency: 220.00 },
+                    { text: "When I am drowning in this silence", note: "C4", frequency: 261.63 },
+                    { text: "Baby, let me in", note: "D4", frequency: 293.66 },
+                ]
+            }
+        ];
+
+        // Inicialização
+        function init() {
+            displaySongs();
+            updateConnectionStatus();
+        }
+
+        // Exibir músicas na lista
+        function displaySongs() {
+            const songList = document.getElementById('songList');
+            songList.innerHTML = '';
+            
+            songs.forEach((song, index) => {
+                const songElement = document.createElement('div');
+                songElement.className = 'song-item';
+                songElement.innerHTML = `
+                    <div>
+                        <strong>${song.title}</strong>
+                        <div class="song-artist">${song.artist} • ${song.difficulty} • ${song.vocalRange}</div>
+                    </div>
+                `;
+                songElement.onclick = () => selectSong(index);
+                songList.appendChild(songElement);
+            });
+        }
+
+        // Selecionar música
+        function selectSong(index) {
+            app.currentSong = songs[index];
+            app.currentLyricIndex = 0;
+            app.notesHit = 0;
+            app.totalNotes = 0;
+            
+            // Atualizar interface
+            document.querySelectorAll('.song-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            displayCurrentLyric();
+            updateProgress();
+            document.getElementById('startButton').disabled = !app.isMicActive;
+            
+            // Feedback ao usuário
+            showFeedback(`🎵 ${app.currentSong.title} selecionada! Prepare-se para cantar!`, 'info');
+        }
+
+        // Exibir letra atual
+        function displayCurrentLyric() {
+            if (!app.currentSong) return;
+            
+            const lyricsDisplay = document.getElementById('lyricsDisplay');
+            const currentLyric = app.currentSong.lyrics[app.currentLyricIndex];
+            
+            let html = '';
+            app.currentSong.lyrics.forEach((lyric, index) => {
+                if (index === app.currentLyricIndex) {
+                    html += `<div class="current-lyric">${lyric.text}</div>`;
+                } else if (index < app.currentLyricIndex) {
+                    html += `<div style="opacity: 0.5;">${lyric.text}</div>`;
+                } else {
+                    html += `<div style="opacity: 0.7;">${lyric.text}</div>`;
+                }
+            });
+            
+            lyricsDisplay.innerHTML = html;
+            lyricsDisplay.scrollTop = lyricsDisplay.scrollHeight;
+        }
+
+        // Atualizar progresso
+        function updateProgress() {
+            if (!app.currentSong) return;
+            
+            const progress = (app.currentLyricIndex / app.currentSong.lyrics.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('songProgress').textContent = `${Math.round(progress)}% completo`;
+        }
+
+        // Mostrar feedback
+        function showFeedback(message, type) {
+            const feedbackBox = document.getElementById('feedbackBox');
+            feedbackBox.textContent = message;
+            feedbackBox.className = `feedback-box show feedback-${type}`;
+            
+            setTimeout(() => {
+                feedbackBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // Alternar microfone
+        async function toggleMicrophone() {
+            if (app.isMicActive) {
+                stopMicrophone();
+            } else {
+                await startMicrophone();
+            }
+        }
+
+        // Iniciar microfone
+        async function startMicrophone() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                app.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                app.analyser = app.audioContext.createAnalyser();
+                app.microphone = app.audioContext.createMediaStreamSource(stream);
+                
+                app.analyser.fftSize = 2048;
+                app.microphone.connect(app.analyser);
+                
+                app.isMicActive = true;
+                document.getElementById('micButton').textContent = '🎤 Desativar Microfone';
+                document.getElementById('connectionStatus').textContent = '🟢 Microfone Conectado';
+                document.getElementById('connectionStatus').style.color = '#00B894';
+                
+                if (app.currentSong) {
+                    document.getElementById('startButton').disabled = false;
+                }
+                
+                // Iniciar detecção de pitch
+                detectPitch();
+                
+                showFeedback('✅ Microfone ativado! Vamos começar!', 'success');
+            } catch (error) {
+                showFeedback('❌ Erro ao acessar microfone: ' + error.message, 'warning');
+            }
+        }
+
+        // Parar microfone
+        function stopMicrophone() {
+            if (app.microphone) {
+                app.microphone.disconnect();
+                app.microphone = null;
+            }
+            if (app.audioContext) {
+                app.audioContext.close();
+                app.audioContext = null;
+            }
+            
+            app.isMicActive = false;
+            document.getElementById('micButton').textContent = '🎤 Ativar Microfone';
+            document.getElementById('connectionStatus').textContent = '🔴 Microfone Desconectado';
+            document.getElementById('connectionStatus').style.color = '#FF6B6B';
+            document.getElementById('startButton').disabled = true;
+        }
+
+        // Detectar pitch
+        function detectPitch() {
+            if (!app.isMicActive) return;
+            
+            const bufferLength = app.analyser.fftSize;
+            const buffer = new Float32Array(bufferLength);
+            app.analyser.getFloatTimeDomainData(buffer);
+            
+            // Autocorrelação para detecção de pitch
+            const frequency = autoCorrelate(buffer, app.audioContext.sampleRate);
+            
+            if (frequency > 0) {
+                app.currentFrequency = frequency;
+                updatePitchDisplay(frequency);
+                
+                if (app.isPracticing) {
+                    checkNoteAccuracy(frequency);
+                }
+            }
+            
+            requestAnimationFrame(detectPitch);
+        }
+
+        // Autocorrelação para detecção de pitch
+        function autoCorrelate(buffer, sampleRate) {
+            let size = buffer.length;
+            let maxSamples = Math.floor(size / 2);
+            let bestOffset = -1;
+            let bestCorrelation = 0;
+            let rms = 0;
+            
+            for (let i = 0; i < size; i++) {
+                let val = buffer[i];
+                rms += val * val;
+            }
+            rms = Math.sqrt(rms / size);
+            
+            if (rms < 0.01) return -1;
+            
+            let lastCorrelation = 1;
+            for (let offset = 0; offset < maxSamples; offset++) {
+                let correlation = 0;
+                
+                for (let i = 0; i < maxSamples; i++) {
+                    correlation += Math.abs(buffer[i] - buffer[i + offset]);
+                }
+                
+                correlation = 1 - correlation / maxSamples;
+                
+                if (correlation > 0.9 && correlation > lastCorrelation) {
+                    found = true;
+                } else if (found && correlation < lastCorrelation) {
+                    bestOffset = offset - 1;
+                    bestCorrelation = lastCorrelation;
+                    break;
+                }
+                
+                lastCorrelation = correlation;
+            }
+            
+            if (bestOffset > 0) {
+                return sampleRate / bestOffset;
+            }
+            
+            return -1;
+        }
+
+        // Atualizar display de pitch
+        function updatePitchDisplay(frequency) {
+            document.getElementById('frequencyDisplay').textContent = Math.round(frequency) + ' Hz';
+            
+            const note = frequencyToNote(frequency);
+            document.getElementById('noteDisplay').textContent = note;
+            
+            // Atualizar posição da linha no indicador
+            const pitchLine = document.getElementById('pitchLine');
+            const pitchIndicator = document.getElementById('pitchIndicator');
+            const minFreq = 100;
+            const maxFreq = 1000;
+            const position = ((frequency - minFreq) / (maxFreq - minFreq)) * 100;
+            pitchLine.style.top = `${Math.max(0, Math.min(100, 100 - position))}%`;
+        }
+
+        // Converter frequência para nota musical
+        function frequencyToNote(frequency) {
+            const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const A4 = 440;
+            const C0 = A4 * Math.pow(2, -4.75);
+            
+            let halfSteps = Math.round(12 * Math.log2(frequency / C0));
+            let octave = Math.floor(halfSteps / 12);
+            let noteIndex = halfSteps % 12;
+            
+            return notes[noteIndex] + octave;
+        }
+
+        // Iniciar prática
+        function startPractice() {
+            if (!app.currentSong || !app.isMicActive) {
+                showFeedback('⚠️ Selecione uma música e ative o microfone primeiro!', 'warning');
+                return;
+            }
+            
+            app.isPracticing = true;
+            app.currentLyricIndex = 0;
+            app.notesHit = 0;
+            app.totalNotes = 0;
+            app.sessionStart = new Date();
+            
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('startButton').textContent = '🎤 Cantando...';
+            
+            // Iniciar timer
+            app.timerInterval = setInterval(updateTimer, 1000);
+            
+            // Definir primeira nota alvo
+            setTargetNote();
+            
+            showFeedback('🎵 Comece a cantar! Siga a letra e mantenha o tom!', 'success');
+        }
+
+        // Parar prática
+        function stopPractice() {
+            app.isPracticing = false;
+            clearInterval(app.timerInterval);
+            
+            document.getElementById('startButton').disabled = !app.isMicActive;
+            document.getElementById('startButton').textContent = '▶️ Iniciar Treino';
+            
+            const accuracy = app.totalNotes > 0 ? Math.round((app.notesHit / app.totalNotes) * 100) : 0;
+            showFeedback(`🏁 Treino finalizado! Precisão: ${accuracy}%`, accuracy > 70 ? 'success' : 'warning');
+        }
+
+        // Definir nota alvo
+        function setTargetNote() {
+            if (!app.currentSong || app.currentLyricIndex >= app.currentSong.lyrics.length) {
+                finishSong();
+                return;
+            }
+            
+            const targetLyric = app.currentSong.lyrics[app.currentLyricIndex];
+            app.targetFrequency = targetLyric.frequency;
+            
+            // Atualizar posição da nota alvo no indicador
+            const targetNote = document.getElementById('targetNote');
+            const minFreq = 100;
+            const maxFreq = 1000;
+            const position = ((app.targetFrequency - minFreq) / (maxFreq - minFreq)) * 100;
+            targetNote.style.top = `${Math.max(0, Math.min(100, 100 - position))}%`;
+            
+            displayCurrentLyric();
+            updateProgress();
+        }
+
+        // Verificar precisão da nota
+        function checkNoteAccuracy(currentFreq) {
+            const targetFreq = app.targetFrequency;
+            const cents = 1200 * Math.log2(currentFreq / targetFreq);
+            
+            app.totalNotes++;
+            
+            if (Math.abs(cents) <= app.tolerance) {
+                app.notesHit++;
+                
+                // Nota atingida!
+                showFeedback(`🎯 Excelente! Nota ${frequencyToNote(targetFreq)} atingida!`, 'success');
+                
+                // Avançar para próxima nota
+                setTimeout(() => {
+                    app.currentLyricIndex++;
+                    if (app.currentLyricIndex < app.currentSong.lyrics.length) {
+                        setTargetNote();
+                    } else {
+                        finishSong();
+                    }
+                }, 500);
+            } else if (Math.abs(cents) <= app.tolerance * 2) {
+                // Perto, mas não perfeito
+                const direction = cents > 0 ? 'desça' : 'suba';
+                showFeedback(`📈 Quase! ${direction} um pouco (${Math.round(Math.abs(cents))} cents)`, 'warning');
+            } else {
+                // Muito longe da nota
+                const direction = cents > 0 ? 'desça' : 'suba';
+                const noteDiff = Math.round(Math.abs(cents) / 100);
+                showFeedback(`💪 ${direction} ${noteDiff} semitom(ns) para atingir ${frequencyToNote(targetFreq)}`, 'warning');
+            }
+            
+            updateStats();
+        }
+
+        // Finalizar música
+        function finishSong() {
+            app.isPracticing = false;
+            clearInterval(app.timerInterval);
+            
+            const accuracy = app.totalNotes > 0 ? Math.round((app.notesHit / app.totalNotes) * 100) : 0;
+            
+            showFeedback(`🎉 Música completa! Precisão: ${accuracy}%`, accuracy > 70 ? 'success' : 'warning');
+            
+            document.getElementById('startButton').disabled = !app.isMicActive;
+            document.getElementById('startButton').textContent = '▶️ Iniciar Treino';
+            
+            // Determinar tipo de voz baseado no desempenho
+            determineVoiceType(accuracy);
+        }
+
+        // Determinar tipo de voz
+        function determineVoiceType(accuracy) {
+            if (accuracy > 85) {
+                app.voiceType = "Soprano/Tenor - Voz Aguda";
+            } else if (accuracy > 70) {
+                app.voiceType = "Mezzo-Soprano/Barítono - Voz Média";
+            } else {
+                app.voiceType = "Contralto/Baixo - Voz Grave";
+            }
+            
+            showFeedback(`🔍 Tipo de voz identificado: ${app.voiceType}`, 'info');
+        }
+
+        // Atualizar timer
+        function updateTimer() {
+            if (!app.sessionStart) return;
+            
+            const now = new Date();
+            const diff = Math.floor((now - app.sessionStart) / 1000);
+            const minutes = Math.floor(diff / 60);
+            const seconds = diff % 60;
+            
+            document.getElementById('sessionTimeStat').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const accuracy = app.totalNotes > 0 ? Math.round((app.notesHit / app.totalNotes) * 100) : 0;
+            document.getElementById('accuracyStat').textContent = `${accuracy}%`;
+            document.getElementById('notesHitStat').textContent = app.notesHit;
+        }
+
+        // Atualizar status da conexão
+        function updateConnectionStatus() {
+            const status = document.getElementById('connectionStatus');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                status.textContent = '🟡 Clique para ativar o microfone';
+                status.style.color = '#FDCB6E';
+            } else {
+                status.textContent = '❌ Microfone não suportado';
+                status.style.color = '#FF6B6B';
+            }
+        }
+
+        // Inicializar 
+aplicativo
+        init();
+    </script>
+</body>
+</html>
